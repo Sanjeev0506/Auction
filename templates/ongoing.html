@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Live Auction | AuctionVerse</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+  <div id="particles-js"></div>
+
+  <nav class="navbar">
+    <div class="logo">AuctionVerse</div>
+    <div class="nav-links">
+      <a href="/host">Host</a>
+      <a href="/join">Join</a>
+      <a href="#" onclick="logout()">Logout</a>
+    </div>
+  </nav>
+
+  <section class="auction-live">
+    <h2>Live Auction</h2>
+    <div id="auctionDetails" class="card"></div>
+
+    <form id="bidForm" class="bid-form">
+      <input type="number" name="bid" id="bidInput" placeholder="Enter your bid (₹)" required />
+      <button type="submit" class="btn">Place Bid</button>
+    </form>
+    <p id="bidStatus"></p>
+  </section>
+
+  <script src="/static/js/script.js"></script>
+  <script>
+    function logout() {
+      localStorage.removeItem("access_token");
+      window.location.href = "/";
+    }
+
+    const auctionId = new URLSearchParams(window.location.search).get("id");
+    const details = document.getElementById("auctionDetails");
+    const form = document.getElementById("bidForm");
+    const status = document.getElementById("bidStatus");
+
+    async function loadAuction() {
+      const res = await fetch("/get-auctions");
+      const auctions = await res.json();
+      const auction = auctions.find(a => a.id == auctionId);
+
+      if (!auction) {
+        status.textContent = "Auction not found.";
+        return;
+      }
+
+      details.innerHTML = `
+        <h3>${auction.title}</h3>
+        <p>${auction.description}</p>
+        <p><strong>Current Bid:</strong> ₹${auction.current_bid}</p>
+        <p><strong>Highest Bidder:</strong> ${auction.highest_bidder || "—"}</p>
+        <p><strong>Ends At:</strong> ${new Date(auction.ends_at).toLocaleString()}</p>
+      `;
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const bidAmount = parseFloat(document.getElementById("bidInput").value);
+      const token = localStorage.getItem("access_token");
+
+      if (!token || !auctionId || isNaN(bidAmount)) {
+        status.textContent = "❌ Invalid bid or login required.";
+        return;
+      }
+
+      try {
+        const res = await fetch("/api/bid", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: token
+          },
+          body: JSON.stringify({
+            auction_id: parseInt(auctionId),
+            bid: bidAmount
+          })
+        });
+
+        const result = await res.json();
+        if (res.ok) {
+          status.textContent = `✅ Bid placed: ₹${result.current_bid}`;
+          form.reset();
+          loadAuction();
+        } else {
+          status.textContent = result.detail || "❌ Bid failed.";
+        }
+      } catch (err) {
+        status.textContent = "❌ Network error.";
+        console.error(err);
+      }
+    });
+
+    loadAuction();
+  </script>
+</body>
+</html>

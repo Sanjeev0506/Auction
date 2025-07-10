@@ -1,0 +1,81 @@
+<!-- join.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Join Auction | AuctionVerse</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+  <div id="particles-js"></div>
+
+  <nav class="navbar">
+    <div class="logo">AuctionVerse</div>
+    <div class="nav-links">
+      <a href="/host">Host</a>
+      <a href="/join">Join</a>
+      <a href="#" onclick="logout()">Logout</a>
+    </div>
+  </nav>
+
+  <section class="auction-list">
+    <h2>Live Auctions</h2>
+    <div id="auctionContainer" class="cards"></div>
+    <p id="joinStatus"></p>
+  </section>
+
+  <script src="/static/js/script.js"></script>
+  <script>
+    function logout() {
+      localStorage.removeItem("access_token");
+      window.location.href = "/";
+    }
+
+    const container = document.getElementById("auctionContainer");
+    const status = document.getElementById("joinStatus");
+
+    async function fetchAuctions() {
+      const res = await fetch("/get-auctions");
+      const auctions = await res.json();
+
+      if (!auctions.length) {
+        container.innerHTML = "<p>No live auctions right now.</p>";
+        return;
+      }
+
+      auctions.forEach(auction => {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <h3>${auction.title}</h3>
+          <p>${auction.description}</p>
+          <p><strong>Current Bid:</strong> ₹${auction.current_bid}</p>
+          <p><strong>Highest Bidder:</strong> ${auction.highest_bidder || "—"}</p>
+          <p><strong>Ends At:</strong> ${new Date(auction.ends_at).toLocaleString()}</p>
+          <button onclick="joinAuction(${auction.id})" class="btn">Join</button>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    async function joinAuction(id) {
+      const token = localStorage.getItem("access_token");
+      const res = await fetch(`/join-auction/${id}`, {
+        method: "POST",
+        headers: { Authorization: token }
+      });
+
+      const result = await res.json();
+      if (res.ok) {
+        status.textContent = `✅ ${result.message}`;
+        setTimeout(() => window.location.href = `/ongoing?id=${id}`, 1000);
+      } else {
+        status.textContent = result.detail || "❌ Could not join auction.";
+      }
+    }
+
+    fetchAuctions();
+  </script>
+</body>
+</html>

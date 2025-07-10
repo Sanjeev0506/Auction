@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="center-text">
+    <h1>Welcome back, <span id="username"></span></h1>
+    <p>Explore live auctions or host your own!</p>
+    <div class="action-buttons">
+      <a href="/ongoing" class="btn">View Ongoing Auctions</a>
+      <a href="/host" class="btn">Host Auction</a>
+      <a href="/join" class="btn">Join Auction</a>
+    </div>
+  </div>
+{% endblock %}

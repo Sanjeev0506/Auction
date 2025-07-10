@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Host Auction | AuctionVerse</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <div id="particles-js"></div>
+
+  <nav class="navbar">
+    <div class="logo">AuctionVerse</div>
+    <div class="nav-links">
+      <a href="/host">Host</a>
+      <a href="/join">Join</a>
+      <a href="#" onclick="logout()">Logout</a>
+    </div>
+  </nav>
+
+  <section class="form-container">
+    <h2>Host a New Auction</h2>
+    <form id="hostForm">
+      <input type="text" name="title" placeholder="Auction Title" required />
+      <textarea name="description" placeholder="Description" rows="4" required></textarea>
+      <input type="datetime-local" name="start_time" required />
+      <input type="datetime-local" name="end_time" required />
+      <input type="number" name="base_price" placeholder="Starting Price (₹)" required />
+      <button type="submit" class="btn">Create Auction</button>
+    </form>
+    <p id="hostStatus"></p>
+  </section>
+
+  <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+  <script src="/static/js/script.js"></script>
+  <script>
+    function logout() {
+      localStorage.removeItem("access_token");
+      window.location.href = "/";
+    }
+
+    const form = document.getElementById("hostForm");
+    const status = document.getElementById("hostStatus");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const data = {
+        title: form.title.value,
+        description: form.description.value,
+        start_time: form.start_time.value,
+        end_time: form.end_time.value,
+        base_price: parseFloat(form.base_price.value)
+      };
+
+      const token = localStorage.getItem("access_token");
+      if (!token) {
+        status.textContent = "Please log in first.";
+        return;
+      }
+
+      const res = await fetch("/host-auction", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token
+        },
+        body: JSON.stringify(data)
+      });
+
+      const result = await res.json();
+      if (res.ok) {
+        status.textContent = `✅ Auction "${result.title}" created successfully!`;
+        form.reset();
+      } else {
+        status.textContent = result.detail || "❌ Something went wrong.";
+      }
+    });
+  </script>
+</body>
+</html>

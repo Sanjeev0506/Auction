@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AuctionVerse | Login</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <div id="particles-js"></div>
+
+  <section class="auth-container">
+    <h2 id="typewriter">Login to AuctionVerse</h2>
+    <form id="authForm">
+      <input type="email" name="email" placeholder="Email" required />
+      <input type="password" name="password" placeholder="Password" required />
+      <button type="submit" class="btn">Login</button>
+      <p id="authStatus"></p>
+    </form>
+    <p class="toggle-text" id="toggleText">
+      Don't have an account? <a href="#" id="toggleLink">Register here</a>
+    </p>
+
+    <div class="social-icons">
+      <a href="https://github.com/sanjeev" target="_blank"><img src="/static/icons/github.png" alt="GitHub" /></a>
+      <a href="https://linkedin.com/in/sanjeev" target="_blank"><img src="/static/icons/linkedin.png" alt="LinkedIn" /></a>
+      <a href="mailto:sanjeev@example.com"><img src="/static/icons/gmail.png" alt="Gmail" /></a>
+    </div>
+  </section>
+
+  <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+  <script src="/static/js/script.js"></script>
+  <script>
+    const form = document.getElementById("authForm");
+    const status = document.getElementById("authStatus");
+    const toggleLink = document.getElementById("toggleLink");
+    const toggleText = document.getElementById("toggleText");
+    const formTitle = document.getElementById("typewriter");
+    const container = document.querySelector(".auth-container");
+    let isLogin = true;
+
+    formTitle.textContent = "Login to AuctionVerse";
+
+    toggleLink.addEventListener("click", (e) => {
+      e.preventDefault();
+      isLogin = !isLogin;
+      form.querySelector("button").textContent = isLogin ? "Login" : "Register";
+      toggleText.innerHTML = isLogin
+        ? `Don't have an account? <a href="#" id="toggleLink">Register here</a>`
+        : `Already have an account? <a href="#" id="toggleLink">Login here</a>`;
+      formTitle.textContent = isLogin ? "Login to AuctionVerse" : "Register for AuctionVerse";
+      container.style.backgroundColor = isLogin
+        ? "rgba(255, 255, 255, 0.05)"
+        : "rgba(0, 255, 213, 0.05)";
+      status.textContent = "";
+    });
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = form.email.value;
+      const password = form.password.value;
+
+      const endpoint = isLogin ? "/login" : "/register";
+      const body = isLogin
+        ? new URLSearchParams({ username: email, password })
+        : JSON.stringify({ email, password });
+
+      const headers = isLogin
+        ? { "Content-Type": "application/x-www-form-urlencoded" }
+        : { "Content-Type": "application/json" };
+
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers,
+        body
+      });
+
+      const result = await res.json();
+      if (res.ok) {
+        if (isLogin) {
+          localStorage.setItem("access_token", `Bearer ${result.access_token}`);
+          window.location.href = "/host";
+        } else {
+          status.textContent = "✅ Registered! You can now log in.";
+          toggleLink.click();
+        }
+      } else {
+        status.textContent = result.detail || "❌ Something went wrong.";
+      }
+    });
+  </script>
+</body>
+</html>
