@@ -4,7 +4,7 @@ Here is a quick overview of it for now ..
 
 # 🎯 AuctionVerse
 
-AuctionVerse is a full-stack web application that lets users host, join, and bid in live auctions — all in real time. Built with FastAPI, HTML/CSS/JS, and JWT authentication, it combines a sleek frontend with a powerful backend.
+AuctionVerse is a full-stack web application that lets users host, join, and bid in live auctions — all in real time. Built with Python (FastAPI), HTML/CSS/JS, and JWT authentication, it combines a sleek frontend with a powerful backend.
 
 ---
 
